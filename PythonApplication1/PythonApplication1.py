@@ -13,7 +13,7 @@ txt_items.close()
 
 cas = time.localtime()
 akt_cas = cas.tm_yday
-#txt_prices = open("prices.txt","r")
+
 s_day = open("prices_7d.txt","r")
 get_sday = int(s_day.readline())
 m_day = open("prices_30d.txt","r")
