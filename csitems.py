@@ -1,25 +1,40 @@
 import sys
 import time
+import json
 import steammarket
 from datetime import datetime
 
-def write_to_file(items, filename="prices.csv"):
-    date = datetime.now()
-    print(date.isoformat())
+def get_history(name):
+    try:
+        with open(f"{name}.history.json", "r") as file:
+            history = json.loads(file.read())
+    except FileNotFoundError as e:
+        history = {}
 
-    with open(filename, "w") as file:
-        for item in items:
-            # Sleep it to avoid rate limiting and returning nothing
-            time.sleep(2)
+    return history
 
-            result = steammarket.get_csgo_item(item, currency=currency)
-            output = f"{date.isoformat()},{item},{result.get('median_price') if result else 'Not Found'}\n"
-            
-            print(output)
-            file.write(output)
-
-
+def write_history(name, history):
+    print("Writing History")
+    print(json.dumps(history))
+    with open(f"{name}.history.json", "w") as file:
+        file.write(json.dumps(history))
+    
+    
+def write_output_csv(name, history):
+    print("Writing CSV")
+    with open(f"{name}.output.csv", "w") as file:
+        file.write("Year,Month,Day,Item,Price")
+        for year, year_data in history.items():
+            for month, month_data in year_data.items():
+                for day, day_data in month_data.items():
+                    for item, item_data in day_data.items():
+                        output = f"{year},{month},{day},{item},{item_data.get('median_price')}\n"
+                        file.write(output)
+    
+    
 def main(filename, currency):
+    name = filename.split(".")[0]
+    history = get_history(name)
     items = []
         
     with open(filename, "r") as txt_items:
@@ -27,7 +42,27 @@ def main(filename, currency):
             line = line.strip("\n")
             items.append(line)
     
-    write_to_file(items)
+    date = datetime.now().date()
+    print(date.isoformat())
+
+    for item in items:
+        # Sleep it to avoid rate limiting and returning nothing
+        time.sleep(2)
+
+        result = steammarket.get_csgo_item(item, currency=currency)
+        print(result)
+
+        year = history.get(date.year, {})
+        month = year.get(date.month, {})
+        day = month.get(date.day, {})
+        day[item] = result
+        month[date.day] = day
+        year[date.month] = month
+        history[date.year] = year
+        
+        
+    write_history(name, history)
+    write_output_csv(name, history)
     
 if __name__ == "__main__":
     if len(sys.argv) < 2:
