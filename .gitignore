@@ -8,7 +8,8 @@ __pycache__/
 .python-version
 
 # Project specific
-.xlsx
-.csv
-.json
-.txt
+*.xlsx
+*.csv
+*.json
+*.txt
+*.bak
