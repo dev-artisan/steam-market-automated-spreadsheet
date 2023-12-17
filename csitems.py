@@ -23,13 +23,11 @@ def write_history(name, history):
 def write_output_csv(name, history):
     print("Writing CSV")
     with open(f"{name}.output.csv", "w") as file:
-        file.write("Year,Month,Day,Item,Price")
-        for year, year_data in history.items():
-            for month, month_data in year_data.items():
-                for day, day_data in month_data.items():
-                    for item, item_data in day_data.items():
-                        output = f"{year},{month},{day},{item},{item_data.get('median_price')}\n"
-                        file.write(output)
+        file.write("Date,Item,Price")
+        for date, date_data in history.items():
+            for item, item_data in date_data.items():
+                output = f"{date},{item},{item_data.get('median_price')}\n"
+                file.write(output)
     
     
 def main(filename, currency):
@@ -43,22 +41,22 @@ def main(filename, currency):
             items.append(line)
     
     date = datetime.now().date()
-    print(date.isoformat())
+    isodate = date.isoformat()
+    print(isodate)
 
     for item in items:
         # Sleep it to avoid rate limiting and returning nothing
-        time.sleep(2)
+        time.sleep(3)
 
         result = steammarket.get_csgo_item(item, currency=currency)
-        print(result)
+        if result and result.get("success") is True:
+            print(result)
 
-        year = history.get(date.year, {})
-        month = year.get(date.month, {})
-        day = month.get(date.day, {})
-        day[item] = result
-        month[date.day] = day
-        year[date.month] = month
-        history[date.year] = year
+            data = history.get(isodate, {})
+            data[item] = result
+            history[isodate] = data
+        else:
+            print("Cannot retrieve item: ", item, result)
         
         
     write_history(name, history)
