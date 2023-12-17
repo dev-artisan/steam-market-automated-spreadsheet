@@ -64,7 +64,7 @@ def main(filename, currency):
 
     date = datetime.now().date()
     isodate = date.isoformat()
-    print(isodate)
+    print("Request Date: ", isodate)
 
     for item in items:
         # Sleep it to avoid rate limiting and returning nothing
